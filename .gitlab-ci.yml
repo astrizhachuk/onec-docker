@@ -199,7 +199,7 @@ run:client-vnc-vas:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client-vnc-vas:$ONEC_VERSION
   script:
     - docker pull $CONTAINER_TEST_IMAGE
-    - docker run --rm $CONTAINER_TEST_IMAGE bash -c if [ -f /usr/lib/vanessa-automation-single.epf ]; then exit 0; else exit 1; fi
+    - docker run --rm $CONTAINER_TEST_IMAGE bash -c "if [ -f /usr/lib/vanessa-automation-single.epf ]; then exit 0; else exit 1; fi"
   rules:
     - if: '$INSTALLER_TYPE == "tests"'
     - if: '$BUILD_ALL == "true"'
