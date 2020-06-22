@@ -114,7 +114,7 @@ build:client-vnc-vas:
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client-vnc-vas:$ONEC_VERSION
   script:
-    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-vnc --build-arg BASE_TAG=%ONEC_VERSION% --build-arg VAS_VERSION=1.2.025 --pull -t $CONTAINER_TEST_IMAGE -f client-vnc-vas/Dockerfile .
+    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-vnc --build-arg BASE_TAG=$ONEC_VERSION --build-arg VAS_VERSION=1.2.025 --pull -t $CONTAINER_TEST_IMAGE -f client-vnc-vas/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "tests"'
