@@ -1,6 +1,6 @@
 ARG DOCKER_USERNAME
 ARG ONEC_VERSION
-FROM ${DOCKER_USERNAME}/onec-client:${ONEC_VERSION} as base
+FROM ${DOCKER_USERNAME}/client:${ONEC_VERSION} as base
 
 FROM debian:stretch-slim
 

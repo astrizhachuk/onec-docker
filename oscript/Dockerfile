@@ -1,61 +1,60 @@
-ARG DOCKER_USERNAME
-ARG ONEC_VERSION
-FROM ${DOCKER_USERNAME}/onec-client:${ONEC_VERSION} as base
+ARG DOCKER_USERNAME=library
+ARG BASE_IMAGE=debian
+ARG BASE_TAG=stretch-slim
 
-FROM mono:5.20-slim
-LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
+FROM ${DOCKER_USERNAME}/${BASE_IMAGE}:${BASE_TAG}
 
-ARG onescript_ver=1.0.21
+# Installing mono and oscript dependencies
+ARG MONO_VERSION=6.8.0.105
 
-COPY --from=base /opt /opt
-
-ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-amd64.tar.gz /tmp/
-
-SHELL ["/bin/bash", "-c"]
-RUN echo "deb http://http.debian.net/debian/ stretch main contrib non-free" > /etc/apt/sources.list \
-  && echo "deb http://http.debian.net/debian/ stretch-updates main contrib non-free" >> /etc/apt/sources.list \
-  && echo "deb http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list \
-  && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
-  && apt-get update \
+RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      ca-certificates \
-      curl \
-      locales \
-      libwebkitgtk-3.0-0 \
-      ttf-mscorefonts-installer \
-      libfontconfig1 \
-      libgsf-1-114 \
-      libglib2.0-0 \
-      libodbc1 \
-      libmagickwand-6.q16-3 \
-      dbus-x11 \
-      at-spi2-core \
-      procps \
-      xvfb \
-      x11vnc \
-      libmono-i18n4.0-all \
+      gnupg \
+      dirmngr \
+      unzip \
+      wget \
+  && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF \
+  && echo "deb http://download.mono-project.com/repo/debian stable-stretch main" > /etc/apt/sources.list.d/mono-official-stable.list \
+  && apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    mono-runtime \
+    ca-certificates-mono \
+    libmono-i18n4.0-all \
+    libmono-system-runtime-serialization4.0-cil \
+  && cert-sync --user /etc/ssl/certs/ca-certificates.crt \
   && rm -rf  \
     /var/lib/apt/lists/* \
     /var/cache/debconf \
-  && curl -L http://oscript.io/downloads/${onescript_ver//./_}/onescript-engine_"$onescript_ver"_all.deb -o onescript-engine.deb \
-  && dpkg -i onescript-engine.deb \
-  && rm -f onescript-engine.deb \
-  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
-ENV LANG ru_RU.UTF-8
+    /tmp/*
 
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / \
-  && rm -rf /tmp/s6-overlay-amd64.tar.gz
+# Installing oscript
+ARG OVM_REPOSITORY_OWNER=oscript-library
+ARG OVM_VERSION=v1.0.0-RC15
+ARG ONESCRIPT_VERSION=dev
+ARG ONESCRIPT_PACKAGES="logos"
 
-RUN groupadd -r usr1cv8 --gid=2001 \
-  && useradd -r -g usr1cv8 --uid=2001 --home-dir=/home/usr1cv8 --shell=/sbin/nologin usr1cv8 \
-  && mkdir -p /home/usr1cv8/.1cv8 \
-  && mkdir -p /home/usr1cv8/.1C/1cestart \
-  && chown -R usr1cv8:usr1cv8 /home/usr1cv8
+RUN wget https://github.com/${OVM_REPOSITORY_OWNER}/ovm/releases/download/${OVM_VERSION}/ovm.exe \
+  && mv ovm.exe /usr/local/bin/ \
+  && echo 'mono /usr/local/bin/ovm.exe "$@"' | tee /usr/local/bin/ovm \
+  && chmod +x /usr/local/bin/ovm \
+  && ovm use --install ${ONESCRIPT_VERSION}
 
-COPY ./configs/client-vnc/rootfs/ /
+ENV OSCRIPTBIN=/root/.local/share/ovm/current/bin
+ENV PATH="$OSCRIPTBIN:$PATH"
 
-ENV DISPLAY=:0
-ENV DISPLAY_WIDTH=1440
-ENV DISPLAY_HEIGHT=900
+# Update and prepare oscript packages
+# Bugfix opm для ${ONESCRIPT_VERSION} < 1.4.0
+RUN wget -O /tmp/opm.ospx https://github.com/${OVM_REPOSITORY_OWNER}/opm/releases/download/v0.16.2/opm-0.16.2.ospx \
+  && unzip /tmp/opm.ospx -d /tmp \
+  && unzip -o ./tmp/content.zip -d /root/.local/share/ovm/current/lib/opm \
+  && opm install -f /tmp/opm.ospx \
+  && rm -rf /tmp/*
 
-ENTRYPOINT ["/init"]
+RUN opm update --all \
+  && opm install ${ONESCRIPT_PACKAGES}
+
+COPY ./oscript/docker-entrypoint.sh /
+RUN chmod 755 /docker-entrypoint.sh \
+  && chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
