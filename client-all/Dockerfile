@@ -41,8 +41,8 @@ RUN set -xe; \
 FROM ubuntu:18.04 as client
 LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
 
-ARG onec_uid="999"
-ARG onec_gid="999"
+ARG onec_uid="2001"
+ARG onec_gid="2001"
 
 COPY --from=base1 /opt /opt
 
@@ -122,11 +122,11 @@ ENV LANG ru_RU.UTF-8
 RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / \
   && rm -rf /tmp/s6-overlay-amd64.tar.gz
 
-RUN groupadd -r usr1cv8 --gid=2001 \
-  && useradd -r -g usr1cv8 --uid=2001 --home-dir=/home/usr1cv8 --shell=/sbin/nologin usr1cv8 \
+RUN groupadd -r grp1cv8 --gid=2001 \
+  && useradd -r -g grp1cv8 --uid=2001 --home-dir=/home/usr1cv8 --shell=/sbin/nologin usr1cv8 \
   && mkdir -p /home/usr1cv8/.1cv8 \
   && mkdir -p /home/usr1cv8/.1C/1cestart \
-  && chown -R usr1cv8:usr1cv8 /home/usr1cv8
+  && chown -R usr1cv8:grp1cv8 /home/usr1cv8
 
 COPY ./configs/client-vnc/rootfs/ /
 
@@ -155,7 +155,7 @@ RUN set -xe \
     && unzip /tmp/vas.zip -d /tmp \
     && mv /tmp/vanessa-automation-single.epf /usr/lib/vanessa-automation-single.epf \
     && ln -s /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
-    && chown -R usr1cv8:usr1cv8 /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
+    && chown -R usr1cv8:grp1cv8 /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
     && rm -rf /tmp/*
 
 ENV VAS=/usr/lib/vanessa-automation-single.epf
