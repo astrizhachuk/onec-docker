@@ -41,8 +41,8 @@ RUN set -xe; \
 FROM ubuntu:18.04
 LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
 
-ARG onec_uid="999"
-ARG onec_gid="999"
+ARG onec_uid="2001"
+ARG onec_gid="2001"
 
 COPY --from=base /opt /opt
 

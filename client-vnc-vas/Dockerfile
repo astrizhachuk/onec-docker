@@ -19,7 +19,7 @@ RUN set -xe \
     && unzip /tmp/vas.zip -d /tmp \
     && mv /tmp/vanessa-automation-single.epf /usr/lib/vanessa-automation-single.epf \
     && ln -s /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
-    && chown -R usr1cv8:usr1cv8 /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
+    && chown -R usr1cv8:grp1cv8 /usr/lib/vanessa-automation-single.epf /home/usr1cv8/vas.epf \
     && rm -rf /tmp/*
 
 ENV VAS=/usr/lib/vanessa-automation-single.epf
