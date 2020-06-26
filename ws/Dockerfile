@@ -40,8 +40,8 @@ RUN chmod +x /bin/gosu
 FROM debian:stretch-slim
 LABEL maintainers="Anton Kvashenkin <anton.jugatsu@gmail.com>, Alexander Strizhachuk <a.strizhachuk@yandex.ru>"
 
-ARG onec_uid="999"
-ARG onec_gid="999"
+ARG onec_uid="2001"
+ARG onec_gid="2001"
 
 COPY --from=base /opt /opt
 COPY --from=base /bin/gosu /bin/gosu
