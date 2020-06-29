@@ -35,7 +35,7 @@ build:client:
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client:$ONEC_VERSION
   script:
-    - docker build --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg ONEC_VERSION=$ONEC_VERSION --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
+    - docker build --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg ONEC_VERSION=$ONEC_VERSION --target client --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "client"'
@@ -46,7 +46,7 @@ build:vnc:
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client-vnc:$ONEC_VERSION
   script:
-    - docker build --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg ONEC_VERSION=$ONEC_VERSION --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --pull -t $CONTAINER_TEST_IMAGE -f client-vnc/Dockerfile .
+    - docker build --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg ONEC_VERSION=$ONEC_VERSION --target client-vnc --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "client"'
@@ -114,7 +114,7 @@ build:client-vnc-vas:
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client-vnc-vas:$ONEC_VERSION
   script:
-    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-vnc --build-arg BASE_TAG=$ONEC_VERSION --build-arg VAS_VERSION=1.2.025 --pull -t $CONTAINER_TEST_IMAGE -f client-vnc-vas/Dockerfile .
+    - docker build --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg ONEC_VERSION=$ONEC_VERSION --build-arg VAS_VERSION=1.2.025 --target client-vnc-vas --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "tests"'
