@@ -13,6 +13,7 @@ stages:
   - build crs-http
   - build client-oscript
   - build client-vnc-vas
+  - build runner
   - test
   - release
 
@@ -118,6 +119,17 @@ build:client-vnc-vas:
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "tests"'
+    - if: '$BUILD_ALL == "true"'
+
+build:runner:
+  stage: build runner
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/runner:$ONEC_VERSION
+  script:
+    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-oscript-$ONESCRIPT_VERSION --build-arg BASE_TAG=$ONEC_VERSION --build-arg RUNNER_VER=1.10.0 --pull -t $CONTAINER_TEST_IMAGE -f vanessa-runner/Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+  rules:
+    - if: '$INSTALLER_TYPE == "runner"'
     - if: '$BUILD_ALL == "true"'
 
 run:vnc:
