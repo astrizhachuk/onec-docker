@@ -1,0 +1,9 @@
+docker build ^
+  --build-arg DOCKER_USERNAME=%DOCKER_USERNAME% ^
+  --build-arg ONEC_USERNAME=%ONEC_USERNAME% ^
+  --build-arg ONEC_PASSWORD=%ONEC_PASSWORD% ^
+  --build-arg BASE_IMAGE=jdk ^
+  --build-arg BASE_TAG=%ONEC_VERSION% ^
+  --build-arg EDT_VERSION=2020.5 ^
+  -t %DOCKER_USERNAME%/edt:%ONEC_VERSION% ^
+  -f edt/Dockerfile .

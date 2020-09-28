@@ -46,7 +46,7 @@ EDTPATHLINK=$(curl -s -G \
     -b /tmp/cookies.txt \
     --data-urlencode "nick=DevelopmentTools10" \
     --data-urlencode "ver=$ONEC_VERSION" \
-    https://releases.1c.ru/version_files | grep -oP '(?<=a href=")[^"]+path=(.*)(?=">.*для Linux 64 Bit<)' | grep -oP '(?<=path=).*')
+https://releases.1c.ru/version_files | grep -oP '(?<=a href=")[^"]+path=(.*)(?=">.*(для Linux 64 Bit|для оффлайн установки 1C:EDT для ОС Linux 64 бит)<)' | grep -oP '(?<=path=).*')
 
 EDTLINK=$(curl -s -G \
     -b /tmp/cookies.txt \
