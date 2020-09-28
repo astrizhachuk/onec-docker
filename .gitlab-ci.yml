@@ -163,9 +163,9 @@ run:vnc:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/client-vnc:$ONEC_VERSION
   image:
     name: $CONTAINER_TEST_IMAGE
-  before_script: []
+    entrypoint: [""]
   script:
-    - "/opt/1C/v8.3/x86_64/1cv8 CREATEINFOBASE File=./build/db /DumpResult ./build/create.log"
+    - bash -c "/opt/1C/v8.3/x86_64/1cv8 CREATEINFOBASE File=./build/db /DumpResult ./build/create.log"
   rules:
     - if: '$INSTALLER_TYPE == "client"'
     - if: '$INSTALLER_TYPE == "client-vnc"'
@@ -201,7 +201,7 @@ run:jdk:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
   script:
     - docker pull $CONTAINER_TEST_IMAGE
-    - docker run --rm $CONTAINER_TEST_IMAGE bash -c java -version
+    - docker run --rm $CONTAINER_TEST_IMAGE java -version
   rules:
     - if: '$INSTALLER_TYPE == "jdk"'
     - if: '$INSTALLER_TYPE == "edt"'
