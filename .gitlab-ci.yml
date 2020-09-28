@@ -9,6 +9,8 @@ stages:
   - build vnc
   - build server
   - build ws
+  - build jdk
+  - build edt
   - build crs
   - build crs-http
   - build client-oscript
@@ -74,6 +76,29 @@ build:ws:
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "ws"'
+    - if: '$BUILD_ALL == "true"'
+
+build:jdk:
+  stage: build jdk
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
+  script:
+    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-vnc --build-arg BASE_TAG=$ONEC_VERSION --build-arg OPENJDK_VERSION=14 --pull -t $CONTAINER_TEST_IMAGE -f jdk/Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+  rules:
+    - if: '$INSTALLER_TYPE == "jdk"'
+    - if: '$INSTALLER_TYPE == "edt"'
+    - if: '$BUILD_ALL == "true"'
+
+build:edt:
+  stage: build edt
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
+  script:
+    - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg ONEC_USERNAME=$ONEC_USERNAME --build-arg ONEC_PASSWORD=$ONEC_PASSWORD --build-arg BASE_IMAGE=jdk --build-arg BASE_TAG=$ONEC_VERSION --build-arg EDT_VERSION=2020.5 --pull -t $CONTAINER_TEST_IMAGE -f edt/Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+  rules:
+    - if: '$INSTALLER_TYPE == "edt"'
     - if: '$BUILD_ALL == "true"'
 
 build:crs:
@@ -170,6 +195,29 @@ run:ws:
     - if: '$INSTALLER_TYPE == "ws"'
     - if: '$BUILD_ALL == "true"'
 
+run:jdk:
+  stage: test
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker run --rm $CONTAINER_TEST_IMAGE bash -c java -version
+  rules:
+    - if: '$INSTALLER_TYPE == "jdk"'
+    - if: '$INSTALLER_TYPE == "edt"'
+    - if: '$BUILD_ALL == "true"'
+
+run:edt:
+  stage: test
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker run --rm $CONTAINER_TEST_IMAGE bash -c ring help
+  rules:
+    - if: '$INSTALLER_TYPE == "edt"'
+    - if: '$BUILD_ALL == "true"'
+
 run:crs:
   stage: test
   variables:
@@ -242,6 +290,20 @@ push:ws:
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/ws:$ONEC_VERSION
     CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE/ws:latest
+  <<: *common_release
+
+push:jdk:
+  stage: release
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
+    CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE/jdk:latest
+  <<: *common_release
+
+push:edt:
+  stage: release
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
+    CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE/edt:latest
   <<: *common_release
 
 push:crs:
