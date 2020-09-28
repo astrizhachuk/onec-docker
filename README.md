@@ -6,6 +6,12 @@
 
 > Скрипт скачивания платформы позаимствован отсюда https://github.com/Infactum/onec_dock/blob/master/download.sh :+1:
 
+Отличия от других сборок:
+* Мульти-стейдж для сборки клиента (один докер-файл на все варианты клиентов)
+* Веб-сервер (после PR влит в основной репозиторий)
+* Исправлены юзеры и группы для 1С
+* Автосборка для GitLab
+
 # Использование
 
 В терминале введите:
@@ -31,8 +37,6 @@ $ eval $(cat .onec.env)
 
 :point_up: Введите в терминале команду `docker build` из соответствующей секции.
 
-:tada: Или, если установлен `make`, досточно команды `make all`.
-
 ## Как запустить в docker-compose
 :exclamation: тестировалось только на macOS Mojave и Ubuntu 16.04/18.04
 
@@ -44,7 +48,7 @@ $ docker-compose up -d
 
 # Оглавление
 
-- [Сервер](#сервер)
+- [Сервер](#Сервер)
 - [Сервер с дополнительными языками](#Сервер-с-дополнительными-языками)
 - [Клиент](#support)
 - [Клиент с поддержкой VNC](#support)
@@ -61,127 +65,32 @@ $ docker-compose up -d
 [(Наверх)](#Оглавление)
 
 ```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-server:${ONEC_VERSION} \
+# win
+docker build ^
+  --build-arg DOCKER_USERNAME=%DOCKER_USERNAME% ^
+  --build-arg ONEC_USERNAME=%ONEC_USERNAME% ^
+  --build-arg ONEC_PASSWORD=%ONEC_PASSWORD% ^
+  --build-arg ONEC_VERSION=%ONEC_VERSION% ^
+  -t %DOCKER_USERNAME%/server:%ONEC_VERSION% ^
   -f server/Dockerfile .
 ```
 
-## Сервер с дополнительными языками
-[(Наверх)](#Оглавление)
-
 ```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
+#linux
+docker build \
+  --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
+  --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
   --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
   --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  --build-arg nls_enabled=true \
-  -t ${DOCKER_USERNAME}/onec-server-nls:${ONEC_VERSION} \
+  -t %DOCKER_USERNAME%/server:${ONEC_VERSION} \
   -f server/Dockerfile .
 ```
 
-## Клиент
+## Сервер с дополнительными языками<a name="Сервер-с-дополнительными-языками"></a>
 [(Наверх)](#Оглавление)
 
 ```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-client:${ONEC_VERSION} \
-  -f client/Dockerfile .
+
 ```
 
-## Клиент с поддержкой VNC
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-client-vnc:${ONEC_VERSION} \
-  -f client-vnc/Dockerfile .
-```
-
-## Клиент с дополнительными языками
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  --build-arg nls_enabled=true \
-  -t ${DOCKER_USERNAME}/onec-client-nls:${ONEC_VERSION} \
-  -f client/Dockerfile .
-```
-
-## Тонкий клиент
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-thin-client:${ONEC_VERSION} \
-  -f thin-client/Dockerfile .
-```
-
-## Тонкий клиент с дополнительными языками
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  --build-arg nls_enabled=true \
-  -t ${DOCKER_USERNAME}/onec-thin-client-nls:${ONEC_VERSION} \
-  -f thin-client/Dockerfile .
-```
-
-## Хранилище конфигурации
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-crs:${ONEC_VERSION} \
-  -f crs/Dockerfile .
-```
-
-## rac-gui
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/onec-rac-gui:${ONEC_VERSION}-1.0.1 \
-  -f rac-gui/Dockerfile .
-```
-
-## gitsync
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/gitsync:3.0.0 \
-  -f gitsync/Dockerfile .
-```
-
-## oscript
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  -t ${DOCKER_USERNAME}/oscript:1.0.21 \
-  -f oscript/Dockerfile .
-```
-
-## vanessa-runner
-[(Наверх)](#Оглавление)
-
-```bash
-docker build --build-arg DOCKER_USERNAME=${DOCKER_USERNAME} \
-  -t ${DOCKER_USERNAME}/runner:1.7.0 \
-  -f vanessa-runner/Dockerfile .
-```
+// TODO
