@@ -28,10 +28,16 @@ WORKDIR /tmp
 SHELL ["/bin/bash", "-c"]
 RUN set -xe; \
   if [ "$nls" = true ]; then \
-    dpkg -i 1c-enterprise83-{common,server,ws,crs}*.deb; \
+    dpkg -i 1c-enterprise*-{common,server,ws,crs}*.deb; \
   else \
-    dpkg -i 1c-enterprise83-{common,server,ws,crs}_*.deb; \
+    dpkg -i 1c-enterprise*-{common,server,ws,crs}_*.deb; \
   fi
+
+# create symlink to current 1c:enterprise directory
+COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
+RUN chmod +x /create-symlink-to-current-1cv8.sh \
+  && /create-symlink-to-current-1cv8.sh \
+  && rm /create-symlink-to-current-1cv8.sh
 
 ADD https://github.com/tianon/gosu/releases/download/$gosu_ver/gosu-i386 /bin/gosu
 
