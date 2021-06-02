@@ -1,2 +1,2 @@
 *.sh eol=lf
-configs/* eol=lf
+configs/** eol=lf
