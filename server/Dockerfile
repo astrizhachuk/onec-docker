@@ -71,8 +71,8 @@ RUN groupadd -r grp1cv8 --gid=$onec_gid \
 
 VOLUME /home/usr1cv8/.1cv8 /var/log/1C
 
-COPY ./configs/server/logcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf
-COPY ./configs/server/logcfg.xml /opt/1cv8/current/conf
+COPY ./configs/server/conf/logcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf
+COPY ./configs/server/conf/logcfg.xml /opt/1cv8/current/conf
 
 COPY ./server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
