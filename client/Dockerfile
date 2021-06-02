@@ -13,7 +13,8 @@ RUN apk --no-cache add bash curl grep \
   && chmod +x /download.sh \
   && sync; /download.sh \
   && for file in *.tar.gz; do tar -zxf "$file"; done \
-  && rm -rf *.tar.gz
+  && rm -rf *.tar.gz \
+  && rm ./*-thin-*.deb
 
 FROM ubuntu:18.04 as base1
 
@@ -32,11 +33,19 @@ WORKDIR /tmp
 SHELL ["/bin/bash", "-c"]
 RUN set -xe; \
   if [ "$nls" = true ]; then \
-    dpkg -i 1c-enterprise83-{common,server}_*.deb; \
-    dpkg -i 1c-enterprise83-{common,client}*.deb; \
+    dpkg -i 1c-enterprise*-{common,server}_*.deb; \
+    dpkg -i 1c-enterprise*-{common,client}*.deb; \
   else \
-    dpkg -i 1c-enterprise83-{common,server,client}_*.deb; \
+    dpkg -i 1c-enterprise*-{common,server,client}_*.deb; \
   fi
+
+# create symlink to current 1c:enterprise directory
+COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
+RUN chmod +x /create-symlink-to-current-1cv8.sh \
+  && /create-symlink-to-current-1cv8.sh \
+  && rm /create-symlink-to-current-1cv8.sh
+
+COPY ./configs/client/current/ /opt/1cv8/current/
 
 FROM ubuntu:18.04 as client
 LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
