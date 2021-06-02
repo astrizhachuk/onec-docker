@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv sh
+
+# copy default panel config to current user profile
+mkdir -p /root/.config/xfce4/xfconf/xfce-perchannel-xml
+cp /etc/xdg/xfce4/panel/default.xml ~/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+
+exec startxfce4

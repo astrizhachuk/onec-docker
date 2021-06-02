@@ -97,20 +97,95 @@ COPY --from=base2 /opt /opt
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v1.21.8.0/s6-overlay-amd64.tar.gz /tmp/
 
+# RUN apt-get update \
+#   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+#     dirmngr \
+#     gnupg \
+#   && echo "deb http://http.debian.net/debian/ stretch main contrib non-free" > /etc/apt/sources.list \
+#   && echo "deb http://http.debian.net/debian/ stretch-updates main contrib non-free" >> /etc/apt/sources.list \
+#   && echo "deb http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list \
+#   && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
+#   && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 \
+#   && echo "deb http://security.ubuntu.com/ubuntu xenial-security main" > /etc/apt/sources.list.d/xenial-security.list \
+#   && apt-get update \
+#   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+#       ca-certificates \
+#       git \
+#       locales \
+#       libwebkitgtk-3.0-0 \
+#       ttf-mscorefonts-installer \
+#       libfontconfig1 \
+#       libgsf-1-114 \
+#       libglib2.0-0 \
+#       libodbc1 \
+#       libpng12-0 \
+#       libmagickwand-6.q16-3 \
+#       dbus-x11 \
+#       at-spi2-core \
+#       procps \
+#       xvfb \
+#       x11vnc \
+#   && rm -rf  \
+#     /var/lib/apt/lists/* \
+#     /var/cache/debconf \
+#   && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+# ENV LANG ru_RU.UTF-8
+
 RUN apt-get update \
+  && apt-mark hold iptables \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    dbus-x11 \
+    psmisc \
+    xdg-utils \
+    x11-xserver-utils \
+    x11-utils \
+    xvfb \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    xfce4 \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    gtk3-engines-xfce \
+    libgtk-3-bin \
+    libpulse0 \
+    mousepad \
+    xfce4-notifyd \
+    xfce4-taskmanager \
+    xfce4-terminal \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    xfce4-battery-plugin \
+    xfce4-clipman-plugin \
+    xfce4-cpufreq-plugin \
+    xfce4-cpugraph-plugin \
+    xfce4-diskperf-plugin \
+    xfce4-datetime-plugin \
+    xfce4-fsguard-plugin \
+    xfce4-genmon-plugin \
+    xfce4-indicator-plugin \
+    xfce4-netload-plugin \
+    xfce4-notes-plugin \
+    xfce4-places-plugin \
+    xfce4-sensors-plugin \
+    xfce4-smartbookmark-plugin \
+    xfce4-systemload-plugin \
+    xfce4-timer-plugin \
+    xfce4-verve-plugin \
+    xfce4-weather-plugin \
+    xfce4-whiskermenu-plugin \
+  && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    libxv1 \
+    mesa-utils \
+    mesa-utils-extra \
+  && sed -i 's%<property name="ThemeName" type="string" value="Xfce"/>%<property name="ThemeName" type="string" value="Raleigh"/>%' /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     dirmngr \
     gnupg \
   && echo "deb http://http.debian.net/debian/ stretch main contrib non-free" > /etc/apt/sources.list \
+  && echo "deb http://http.debian.net/debian/ stretch-backports main" >> /etc/apt/sources.list \
   && echo "deb http://http.debian.net/debian/ stretch-updates main contrib non-free" >> /etc/apt/sources.list \
   && echo "deb http://security.debian.org/ stretch/updates main contrib non-free" >> /etc/apt/sources.list \
   && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 \
-  && echo "deb http://security.ubuntu.com/ubuntu xenial-security main" > /etc/apt/sources.list.d/xenial-security.list \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       ca-certificates \
-      git \
       locales \
       libwebkitgtk-3.0-0 \
       ttf-mscorefonts-installer \
@@ -118,13 +193,20 @@ RUN apt-get update \
       libgsf-1-114 \
       libglib2.0-0 \
       libodbc1 \
-      libpng12-0 \
+      libtcmalloc-minimal4 \
       libmagickwand-6.q16-3 \
-      dbus-x11 \
       at-spi2-core \
       procps \
-      xvfb \
       x11vnc \
+  # Install libpng12-0 from xenial
+  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 40976EAF437D05B5 \
+  && echo "deb http://security.ubuntu.com/ubuntu xenial-security main" > /etc/apt/sources.list.d/xenial-security.list \
+  && apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      libpng12-0 \
+  # Install git from backports
+  && DEBIAN_FRONTEND=noninteractive apt-get -t stretch-backports install -y --no-install-recommends \
+    git \
   && rm -rf  \
     /var/lib/apt/lists/* \
     /var/cache/debconf \
