@@ -28,10 +28,16 @@ WORKDIR /tmp
 SHELL ["/bin/bash", "-c"]
 RUN set -xe; \
   if [ "$nls" = true ]; then \
-    dpkg -i 1c-enterprise83-{common,server}*.deb; \
+    dpkg -i 1c-enterprise*-{common,server}*.deb; \
   else \
-    dpkg -i 1c-enterprise83-{common,server}_*.deb; \
+    dpkg -i 1c-enterprise*-{common,server}_*.deb; \
   fi
+
+# create symlink to current 1c:enterprise directory
+COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
+RUN chmod +x /create-symlink-to-current-1cv8.sh \
+  && /create-symlink-to-current-1cv8.sh \
+  && rm /create-symlink-to-current-1cv8.sh
 
 ADD https://github.com/tianon/gosu/releases/download/$gosu_ver/gosu-amd64 /bin/gosu
 
@@ -60,15 +66,15 @@ ENV LANG ru_RU.UTF-8
 
 RUN groupadd -r grp1cv8 --gid=$onec_gid \
   && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
-  && mkdir -p /opt/1C/v8.3/x86_64/conf /home/usr1cv8/.1cv8 /var/log/1C \
-  && chown -R usr1cv8:grp1cv8 /opt/1C /home/usr1cv8 /var/log/1C \
-  && chmod g+rw /var/log/1C
+  && mkdir -p /var/log/1C /home/usr1cv8/.1cv8/1C/1cv8/conf /opt/1cv8/current/conf \
+  && chown -R usr1cv8:grp1cv8 /var/log/1C /home/usr1cv8
 
-VOLUME /home/usr1cv8/.1cv8/ /var/log/1C
+VOLUME /home/usr1cv8/.1cv8 /var/log/1C
 
-COPY ./configs/server/rootfs/ /
+COPY ./configs/server/conf/logcfg.xml /home/usr1cv8/.1cv8/1C/1cv8/conf
+COPY ./configs/server/conf/logcfg.xml /opt/1cv8/current/conf
 
-COPY ./server/docker-entrypoint.sh /usr/local/bin
+COPY ./server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
