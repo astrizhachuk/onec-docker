@@ -71,7 +71,7 @@ RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=usr1cv8/g' 
 RUN groupadd -r grp1cv8 --gid=$onec_gid \
   && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
   && mkdir -p /opt/1cv8/current/conf /home/usr1cv8/.1cv8 /var/log/1C \
-  && chown -R usr1cv8:grp1cv8 /opt/1C /home/usr1cv8 /var/log/1C
+  && chown -R usr1cv8:grp1cv8 /home/usr1cv8 /var/log/1C
 
 VOLUME /home/usr1cv8/.1cv8/ /var/log/1C
 
