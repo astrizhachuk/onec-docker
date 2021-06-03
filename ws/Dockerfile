@@ -46,8 +46,8 @@ RUN chmod +x /bin/gosu
 FROM debian:stretch-slim
 LABEL maintainers="Anton Kvashenkin <anton.jugatsu@gmail.com>, Alexander Strizhachuk <a.strizhachuk@yandex.ru>"
 
-ARG onec_uid="2001"
-ARG onec_gid="2001"
+ARG ONEC_UID="2001"
+ARG ONEC_GID="2001"
 
 COPY --from=base /opt /opt
 COPY --from=base /bin/gosu /bin/gosu
@@ -68,8 +68,8 @@ ENV LANG ru_RU.UTF-8
 RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=usr1cv8/g' /etc/apache2/envvars \
   && sed -i 's/export APACHE_RUN_GROUP=www-data/export APACHE_RUN_GROUP=grp1cv8/g' /etc/apache2/envvars
 
-RUN groupadd -r grp1cv8 --gid=$onec_gid \
-  && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
+RUN groupadd -r grp1cv8 --gid=$ONEC_GID \
+  && useradd -r -g grp1cv8 --uid=$ONEC_UID --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
   && mkdir -p /opt/1cv8/current/conf /home/usr1cv8/.1cv8 /var/log/1C \
   && chown -R usr1cv8:grp1cv8 /home/usr1cv8 /var/log/1C
 

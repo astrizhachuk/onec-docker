@@ -50,8 +50,8 @@ COPY ./configs/client/current/ /opt/1cv8/current/
 FROM ubuntu:18.04 as client
 LABEL maintainer="Anton Kvashenkin <anton.jugatsu@gmail.com> (@jugatsu)"
 
-ARG onec_uid="2001"
-ARG onec_gid="2001"
+ARG ONEC_UID="2001"
+ARG ONEC_GID="2001"
 
 COPY --from=base1 /opt /opt
 
@@ -75,8 +75,8 @@ RUN set -xe \
   && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
 ENV LANG ru_RU.UTF-8
 
-RUN groupadd -r grp1cv8 --gid=$onec_gid \
-  && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
+RUN groupadd -r grp1cv8 --gid=$ONEC_GID \
+  && useradd -r -g grp1cv8 --uid=$ONEC_UID --home-dir=/home/usr1cv8 --shell=/bin/bash usr1cv8 \
   && mkdir -p /home/usr1cv8/.1cv8 \
   && chown -R usr1cv8:grp1cv8 /home/usr1cv8
 
@@ -90,8 +90,8 @@ FROM client as base2
 
 FROM debian:stretch-slim as client-vnc
 
-ARG onec_uid="2001"
-ARG onec_gid="2001"
+ARG ONEC_UID="2001"
+ARG ONEC_GID="2001"
 
 COPY --from=base2 /opt /opt
 
@@ -152,8 +152,8 @@ ENV LANG ru_RU.UTF-8
 RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / \
   && rm -rf /tmp/s6-overlay-amd64.tar.gz
 
-RUN groupadd -r grp1cv8 --gid=$onec_gid \
-  && useradd -r -g grp1cv8 --uid=$onec_uid --home-dir=/home/usr1cv8 --shell=/sbin/nologin usr1cv8 \
+RUN groupadd -r grp1cv8 --gid=$ONEC_GID \
+  && useradd -r -g grp1cv8 --uid=$ONEC_UID --home-dir=/home/usr1cv8 --shell=/sbin/nologin usr1cv8 \
   && mkdir -p /home/usr1cv8/.1cv8 \
   && mkdir -p /home/usr1cv8/.1C/1cestart \
   && chown -R usr1cv8:grp1cv8 /home/usr1cv8
