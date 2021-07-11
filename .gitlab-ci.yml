@@ -1,8 +1,8 @@
+image: registry.git.a/pet4adm/images/docker/gitlab-runner:latest
+
 default:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_JOB_TOKEN $CI_REGISTRY
-  tags:
-    - 1c
 
 stages:
   - build client
@@ -132,7 +132,7 @@ build:client-oscript:
     - docker build --build-arg DOCKER_USERNAME=$DOCKER_USERNAME --build-arg BASE_IMAGE=client-vnc --build-arg BASE_TAG=$ONEC_VERSION --build-arg ONESCRIPT_VERSION=$ONESCRIPT_VERSION --pull -t $CONTAINER_TEST_IMAGE -f oscript/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
-    - if: '$INSTALLER_TYPE == "oscript"'
+    - if: '$INSTALLER_TYPE == "oscript" || $INSTALLER_TYPE == "onescript"'
     - if: '$BUILD_ALL == "true"'
 
 build:client-vnc-vas:
@@ -246,7 +246,7 @@ run:client-oscript:
     - docker pull $CONTAINER_TEST_IMAGE
     - docker run --rm $CONTAINER_TEST_IMAGE oscript -version
   rules:
-    - if: '$INSTALLER_TYPE == "oscript"'
+    - if: '$INSTALLER_TYPE == "oscript" || $INSTALLER_TYPE == "onescript"'
     - if: '$BUILD_ALL == "true"'
 
 run:client-vnc-vas:
