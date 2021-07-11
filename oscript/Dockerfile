@@ -43,14 +43,6 @@ RUN wget https://github.com/${OVM_REPOSITORY_OWNER}/ovm/releases/download/${OVM_
 ENV OSCRIPTBIN=/root/.local/share/ovm/current/bin
 ENV PATH="$OSCRIPTBIN:$PATH"
 
-# Update and prepare oscript packages
-# Bugfix opm для ${ONESCRIPT_VERSION} < 1.4.0
-RUN wget -O /tmp/opm.ospx https://github.com/${OVM_REPOSITORY_OWNER}/opm/releases/download/v0.16.2/opm-0.16.2.ospx \
-  && unzip /tmp/opm.ospx -d /tmp \
-  && unzip -o ./tmp/content.zip -d /root/.local/share/ovm/current/lib/opm \
-  && opm install -f /tmp/opm.ospx \
-  && rm -rf /tmp/*
-
 RUN opm update --all \
   && opm install ${ONESCRIPT_PACKAGES}
 
