@@ -77,7 +77,7 @@ build:va:
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg ONEC_VERSION=$ONEC_VERSION
-      --build-arg VA_VERSION=1.2.036
+      --build-arg VA_VERSION=$VA_VERSION
       --target client-vnc-va
       --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
