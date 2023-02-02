@@ -9,6 +9,7 @@ ARG MONO_VERSION=6.12.0.122
 
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates \
       gnupg \
       dirmngr \
       wget \
@@ -36,8 +37,8 @@ RUN chmod +x /remove-dst-root-ca-x3.sh \
 
 # Installing oscript
 ARG OVM_REPOSITORY_OWNER=oscript-library
-ARG OVM_VERSION=v1.0.0-RC15
-ARG ONESCRIPT_VERSION=dev
+ARG OVM_VERSION=v1.0.0-RC16
+ARG ONESCRIPT_VERSION=stable
 ARG ONESCRIPT_PACKAGES="logos"
 
 RUN wget https://github.com/${OVM_REPOSITORY_OWNER}/ovm/releases/download/${OVM_VERSION}/ovm.exe \
