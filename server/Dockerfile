@@ -4,34 +4,44 @@ ARG ONEC_USERNAME
 ARG ONEC_PASSWORD
 ARG ONEC_VERSION
 ENV installer_type=server
+ENV downloads=downloads/platform83/${ONEC_VERSION}
 
-COPY ./scripts/download.sh /download.sh
+COPY ./scripts/download_og.sh /download_og.sh
 
 WORKDIR /tmp
 
-RUN apk --no-cache add bash curl grep \
-  && chmod +x /download.sh \
-  && sync; /download.sh \
-  && for file in *.tar.gz; do tar -zxf "$file"; done \
-  && rm -rf *.tar.gz
+COPY ./distr ./${downloads}
+RUN rm ./${downloads}/.gitkeep \
+  && rm -rf ${downloads}/thin.client*.tar.gz \
+  && rm -rf ${downloads}/client*.tar.gz \
+  && rm -rf ${downloads}/1c_edt*.tar.gz \
+  && if [ -z "$(ls -A ${downloads})" ]; then \
+  apk --no-cache add bash curl grep tar \
+  && set -x \
+  && sync; /download_og.sh; \
+  fi \
+  && rm -rf ${downloads}/*thin*.tar.gz \
+  && ls ${downloads} \
+  && for file in ${downloads}/*.tar.gz; do tar -xzf "$file"; done \
+  && rm -rf ${downloads}/*.*
 
 FROM debian:bullseye-slim as base
 
+ARG ONEC_VERSION
+ENV installer_type=server
 ARG gosu_ver=1.11
 ARG nls_enabled=false
 ENV nls=$nls_enabled
 
-COPY --from=downloader /tmp/*.deb /tmp/
+COPY ./scripts/install.sh /install.sh
+COPY --from=downloader /tmp/*.* /tmp/
 
 WORKDIR /tmp
 
 SHELL ["/bin/bash", "-c"]
-RUN set -xe; \
-  if [ "$nls" = true ]; then \
-    dpkg -i 1c-enterprise*-{common,server}*.deb; \
-  else \
-    dpkg -i 1c-enterprise*-{common,server}_*.deb; \
-  fi
+RUN ls . \
+  && chmod +x /install.sh \
+  && sync; /install.sh
 
 # create symlink to current 1c:enterprise directory
 COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
@@ -78,6 +88,6 @@ COPY ./server/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN ln -s usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-EXPOSE 1540 1541 1560
+EXPOSE 1540 1541 1545 1560
 
 CMD ["ragent"]

@@ -8,3 +8,5 @@ dive.log
 
 # Configuration file for HASP LM
 nethasp.ini
+
+distr/
