@@ -116,10 +116,8 @@ RUN apt-get update \
     x11-xserver-utils \
     x11-utils \
     xvfb \
-    x11vnc \
   && env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     xfce4 \
-    # Additional GUI utilities, optional
     xfce4-goodies \
   && sed -i 's%<property name="ThemeName" type="string" value="Xfce"/>%<property name="ThemeName" type="string" value="Raleigh"/>%' /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -145,6 +143,7 @@ RUN apt-get update \
       libmagickwand-6.q16-6 \
       at-spi2-core \
       procps \
+      x11vnc \
   # Install libpng12-0 from xenial
   && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 40976EAF437D05B5 \
   && echo "deb http://security.ubuntu.com/ubuntu xenial-security main" > /etc/apt/sources.list.d/xenial-security.list \
