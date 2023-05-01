@@ -18,7 +18,7 @@ RUN rm ./${downloads}/.gitkeep \
   && rm -rf ${downloads}/1c_edt*.tar.gz \
   && if [ -z "$(ls -A ${downloads})" ]; then \
   apk --no-cache add bash curl grep tar \
-  && set -x \
+  && chmod +x /download_og.sh \
   && sync; /download_og.sh; \
   fi \
   && rm -rf ${downloads}/*thin*.tar.gz \
