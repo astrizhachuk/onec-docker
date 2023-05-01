@@ -26,7 +26,7 @@ RUN rm ./${downloads}/.gitkeep \
   && for file in ${downloads}/*.tar.gz; do tar -xzf "$file"; done \
   && rm -rf ${downloads}/*.*
 
-FROM debian:stretch-slim as base
+FROM debian:bullseye-slim as base
 
 ARG ONEC_VERSION
 ENV installer_type=server
@@ -54,7 +54,7 @@ ADD https://github.com/tianon/gosu/releases/download/$gosu_ver/gosu-amd64 /bin/g
 
 RUN chmod +x /bin/gosu
 
-FROM debian:stretch-slim
+FROM debian:bullseye-slim
 LABEL maintainers="Anton Kvashenkin <anton.jugatsu@gmail.com>, Alexander Strizhachuk <a.strizhachuk@yandex.ru>"
 
 ARG ONEC_UID="999"
