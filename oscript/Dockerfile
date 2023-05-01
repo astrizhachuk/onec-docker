@@ -51,6 +51,7 @@ ENV OSCRIPTBIN=/root/.local/share/ovm/current/bin
 ENV PATH="$OSCRIPTBIN:$PATH"
 
 RUN opm update --all \
+  && opm install lambdas \
   && opm install ${ONESCRIPT_PACKAGES}
 
 COPY ./oscript/docker-entrypoint.sh /
