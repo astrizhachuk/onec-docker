@@ -40,6 +40,10 @@ else
     package_installer_type=""
 fi
 
+echo "installer_type: "$installer_type
+echo "package: "$package
+echo "package_installer_type: "$package_installer_type
+
 case "$installer_type" in
   edt)
       echo "EDT"
