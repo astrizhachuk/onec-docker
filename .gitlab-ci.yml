@@ -12,7 +12,6 @@ stages:
   - build va
   - build server
   - build ws
-  - build jdk
   - build edt
   - build crs
   - build crs-apache
@@ -115,20 +114,21 @@ build:ws:
     - if: '$INSTALLER_TYPE == "ws"'
     - if: '$BUILD_ALL == "true"'
 
-build:jdk:
-  stage: build jdk
+build:downloader:
+  stage: build edt
   variables:
-    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/oscript-downloader:latest
   script:
     - docker build
-      --build-arg DOCKER_USERNAME=$DOCKER_USERNAME
-      --build-arg BASE_IMAGE=client-vnc
-      --build-arg BASE_TAG=$ONEC_VERSION
-      --build-arg OPENJDK_VERSION=15
-      --pull -t $CONTAINER_TEST_IMAGE -f jdk/Dockerfile .
+      --build-arg DOCKER_USERNAME=library
+      --build-arg ONEC_USERNAME=$ONEC_USERNAME
+      --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
+      --build-arg BASE_IMAGE=ubuntu
+      --build-arg BASE_TAG=20.04
+      --build-arg ONESCRIPT_PACKAGES="yard"
+      --pull -t $CONTAINER_TEST_IMAGE -f oscript/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
-    - if: '$INSTALLER_TYPE == "jdk"'
     - if: '$INSTALLER_TYPE == "edt"'
     - if: '$BUILD_ALL == "true"'
 
@@ -141,9 +141,12 @@ build:edt:
       --build-arg DOCKER_USERNAME=$DOCKER_USERNAME
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
-      --build-arg BASE_IMAGE=jdk
-      --build-arg BASE_TAG=$ONEC_VERSION
-      --build-arg EDT_VERSION=2020.5
+      --build-arg BASE_IMAGE=azul/zulu-openjdk
+      --build-arg BASE_TAG=17
+      --build-arg EDT_VERSION=$EDT_VERSION
+      --build-arg DOWNLOADER_REGISTRY_URL=$DOCKER_USERNAME
+      --build-arg DOWNLOADER_IMAGE=oscript-downloader
+      --build-arg DOWNLOADER_TAG=latest
       --pull -t $CONTAINER_TEST_IMAGE -f edt/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
@@ -262,25 +265,13 @@ run:ws:
     - if: '$INSTALLER_TYPE == "ws"'
     - if: '$BUILD_ALL == "true"'
 
-run:jdk:
-  stage: test
-  variables:
-    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/jdk:$ONEC_VERSION
-  script:
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker run --rm $CONTAINER_TEST_IMAGE bash -c "java -version"
-  rules:
-    - if: '$INSTALLER_TYPE == "jdk"'
-    - if: '$INSTALLER_TYPE == "edt"'
-    - if: '$BUILD_ALL == "true"'
-
 run:edt:
   stage: test
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
   script:
     - docker pull $CONTAINER_TEST_IMAGE
-    - docker run --rm $CONTAINER_TEST_IMAGE bash -c "ring help"
+    - docker run --rm $CONTAINER_TEST_IMAGE bash -c "1cedtcli"
   rules:
     - if: '$INSTALLER_TYPE == "edt"'
     - if: '$BUILD_ALL == "true"'
