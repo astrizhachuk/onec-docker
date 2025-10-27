@@ -136,6 +136,8 @@ build:edt:
   stage: build edt
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
+  needs:
+    - build:downloader
   script:
     - docker build
       --build-arg DOCKER_USERNAME=$DOCKER_USERNAME
