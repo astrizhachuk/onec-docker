@@ -1,47 +1,57 @@
-FROM alpine:latest as downloader
+# Используем базовый образ для скачивания
+ARG DOWNLOADER_REGISTRY_URL
+ARG DOWNLOADER_IMAGE
+ARG DOWNLOADER_TAG
+FROM ${DOWNLOADER_REGISTRY_URL}/${DOWNLOADER_IMAGE}:${DOWNLOADER_TAG} AS downloader
 
+# Копирование скрипта скачивания и локальных дистрибутивов
+COPY ./scripts/download_yard.sh /download.sh
+COPY ./distr /distr
+RUN chmod +x /download.sh
+
+# Скачивание дистрибутива 1С с использованием вынесенного скрипта
 ARG ONEC_USERNAME
 ARG ONEC_PASSWORD
 ARG ONEC_VERSION
-ENV installer_type=client
-ENV downloads=downloads/platform83/${ONEC_VERSION}
-
-COPY ./scripts/download_og.sh /download_og.sh
 
 WORKDIR /tmp
 
-COPY ./distr ./${downloads}
-RUN rm ./${downloads}/.gitkeep \
-  && rm -rf ${downloads}/deb*.tar.gz \
-  && rm -rf ${downloads}/thin.client*.tar.gz \
-  && rm -rf ${downloads}/1c_edt*.tar.gz \
-  && if [ -z "$(ls -A ${downloads})" ]; then \
-  apk --no-cache add bash curl grep tar \
-  && chmod +x /download_og.sh \
-  && sync; /download_og.sh; \
-  fi \
-  && rm -rf downloads/platform83/${ONEC_VERSION}/*thin*.tar.gz \
-  && for file in ${downloads}/*.tar.gz; do tar -xzf "$file"; done \
-  && find . -name "*-thin-*.deb" -delete \
-  && rm -rf ${downloads}/*.*
+# Установка необходимых пакетов и генерация локали
+RUN apt-get update \
+  && apt-get install -y \
+          locales \
+          p7zip-rar \
+          p7zip-full \
+  && rm -rf /var/lib/apt/lists/* \
+  && locale-gen ru_RU.UTF-8 \
+  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+
+# Установка переменных окружения для корректной работы локали
+ENV LANG ru_RU.UTF-8
+ENV LANGUAGE ru_RU:ru
+ENV LC_ALL ru_RU.UTF-8
+
+RUN /download.sh "$ONEC_USERNAME" "$ONEC_PASSWORD" "$ONEC_VERSION" "client"
 
 FROM ubuntu:18.04 as base1
 
+# Копируем скрипты и файлы установки
 ARG ONEC_VERSION
-ENV installer_type=client
+ARG gosu_ver=1.11
 ARG nls_enabled=false
 ENV nls=$nls_enabled
-
-COPY ./scripts/install.sh /install.sh
-COPY --from=downloader /tmp/*.* /tmp/
-WORKDIR /tmp
+ENV distrPath=/tmp/downloads/Platform83/${ONEC_VERSION}
+ENV installer_type=client
 
 RUN set -xe \
+  && chmod 777 -R /tmp \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       libwebkitgtk-3.0-0
 
-WORKDIR /tmp
+COPY ./scripts/install_new.sh /install.sh
+COPY --from=downloader /tmp/ /tmp/
+WORKDIR ${distrPath}      
 
 SHELL ["/bin/bash", "-c"]
 RUN ls . \
@@ -65,6 +75,7 @@ ARG ONEC_GID="999"
 COPY --from=base1 /opt /opt
 
 RUN set -xe \
+  && chmod 777 -R /tmp \
   && apt-get update \
   && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -79,6 +90,7 @@ RUN set -xe \
       libodbc1 \
       libmagickwand-6.q16-3 \
       dbus-x11 \
+      libglu1-mesa \
   && rm -rf  \
     /var/lib/apt/lists/* \
     /var/cache/debconf \
@@ -98,8 +110,8 @@ CMD ["/opt/1C/v8.3/x86_64/1cv8"]
 
 FROM client as base2
 
-FROM debian:bullseye-slim as client-vnc
-
+FROM debian:bookworm-slim as client-vnc
+ARG ONEC_VERSION
 ARG ONEC_UID="999"
 ARG ONEC_GID="999"
 
@@ -123,10 +135,10 @@ RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     dirmngr \
     gnupg \
-  && echo "deb http://http.debian.net/debian/ bullseye main contrib non-free" > /etc/apt/sources.list \
-  && echo "deb http://http.debian.net/debian/ bullseye-backports main" >> /etc/apt/sources.list \
-  && echo "deb http://http.debian.net/debian/ bullseye-proposed-updates main contrib non-free" >> /etc/apt/sources.list \
-  && echo "deb http://security.debian.org/debian-security/ bullseye-security main contrib non-free" >> /etc/apt/sources.list \
+  && echo "deb http://http.debian.net/debian/ bookworm main contrib non-free" > /etc/apt/sources.list \
+  && echo "deb http://http.debian.net/debian/ bookworm-backports main" >> /etc/apt/sources.list \
+  && echo "deb http://http.debian.net/debian/ bookworm-proposed-updates main contrib non-free" >> /etc/apt/sources.list \
+  && echo "deb http://security.debian.org/debian-security/ bookworm-security main contrib non-free" >> /etc/apt/sources.list \
   && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -141,20 +153,23 @@ RUN apt-get update \
       libodbc1 \
       libtcmalloc-minimal4 \
       libmagickwand-6.q16-6 \
+      libwebkit2gtk-4.0-37 \
       at-spi2-core \
       procps \
       x11vnc \
-  # Install libpng12-0 from xenial
-  && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 40976EAF437D05B5 \
-  && echo "deb http://security.ubuntu.com/ubuntu xenial-security main" > /etc/apt/sources.list.d/xenial-security.list \
-  && apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      iproute2 \
+      libglu1-mesa \
+  # Install libpng12-0 from debian-snapshot
+  && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 7638D0442B90D010 8B48AD6246925553 \
+  && echo "deb http://snapshot.debian.org/archive/debian/20160413T160058Z/ unstable main" > /etc/apt/sources.list.d/debian-snapshot.list \
+  && apt-get -o Acquire::AllowInsecureRepositories=true -o Acquire::Check-Valid-Until=false update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated --no-install-recommends \
+      usrmerge \  
       libpng12-0 \
-  && rm -rf  /etc/apt/sources.list.d/xenial-security.list \
+  && rm -rf  /etc/apt/sources.list.d/debian-snapshot.list \
   && apt-get update \
   # Install libwebkitgtk from stretch
-  && echo "deb http://ru.archive.ubuntu.com/ubuntu/ bionic main universe" > /etc/apt/sources.list.d/stretch.list \
-  && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 3B4FE6ACC0B21F32 \
+  && echo "deb http://archive.debian.org/debian/ stretch main contrib non-free" > /etc/apt/sources.list.d/stretch.list \
   && apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     libwebkitgtk-3.0-0 \
@@ -164,7 +179,7 @@ RUN apt-get update \
     /var/lib/apt/lists/* \
     /var/cache/debconf \
   && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
-ENV LANG ru_RU.UTF-8
+ENV LANG=ru_RU.UTF-8
 
 # remove DST Root CA X3 cert if it exists
 COPY ./scripts/remove-dst-root-ca-x3.sh /remove-dst-root-ca-x3.sh
@@ -172,7 +187,7 @@ RUN chmod +x /remove-dst-root-ca-x3.sh \
   && /remove-dst-root-ca-x3.sh \
   && rm /remove-dst-root-ca-x3.sh
 
-RUN tar xzf /tmp/s6-overlay-amd64.tar.gz -C / \
+RUN tar xzfh /tmp/s6-overlay-amd64.tar.gz -C / \
   && rm -rf /tmp/s6-overlay-amd64.tar.gz
 
 RUN groupadd -r grp1cv8 --gid=$ONEC_GID \

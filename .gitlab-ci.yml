@@ -34,6 +34,28 @@ variables:
     name: release
   when: manual
 
+build:downloader:
+  stage: .pre
+  variables:
+    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/oscript-downloader:latest
+  script:
+    - docker build
+      --build-arg DOCKER_USERNAME=library
+      --build-arg ONEC_USERNAME=$ONEC_USERNAME
+      --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
+      --build-arg BASE_IMAGE=ubuntu
+      --build-arg BASE_TAG=20.04
+      --build-arg ONESCRIPT_PACKAGES="yard"
+      --pull -t $CONTAINER_TEST_IMAGE -f oscript/Dockerfile .
+    - docker push $CONTAINER_TEST_IMAGE
+  rules:
+    - if: '$INSTALLER_TYPE == "client"'
+    - if: '$INSTALLER_TYPE == "client-vnc"'
+    - if: '$INSTALLER_TYPE == "server"'
+    - if: '$INSTALLER_TYPE == "ws"'
+    - if: '$INSTALLER_TYPE == "edt"'
+    - if: '$BUILD_ALL == "true"'
+
 build:client:
   stage: build client
   variables:
@@ -43,6 +65,9 @@ build:client:
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg ONEC_VERSION=$ONEC_VERSION
+      --build-arg DOWNLOADER_REGISTRY_URL=$CI_REGISTRY_IMAGE
+      --build-arg DOWNLOADER_IMAGE=oscript-downloader
+      --build-arg DOWNLOADER_TAG=latest
       --target client
       --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
@@ -59,6 +84,9 @@ build:vnc:
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg ONEC_VERSION=$ONEC_VERSION
+      --build-arg DOWNLOADER_REGISTRY_URL=$CI_REGISTRY_IMAGE
+      --build-arg DOWNLOADER_IMAGE=oscript-downloader
+      --build-arg DOWNLOADER_TAG=latest
       --target client-vnc
       --pull -t $CONTAINER_TEST_IMAGE -f client/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
@@ -93,6 +121,9 @@ build:server:
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg ONEC_VERSION=$ONEC_VERSION
+      --build-arg DOWNLOADER_REGISTRY_URL=$CI_REGISTRY_IMAGE
+      --build-arg DOWNLOADER_IMAGE=oscript-downloader
+      --build-arg DOWNLOADER_TAG=latest
       --pull -t $CONTAINER_TEST_IMAGE -f server/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
@@ -108,45 +139,28 @@ build:ws:
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg ONEC_VERSION=$ONEC_VERSION
+      --build-arg DOWNLOADER_REGISTRY_URL=$CI_REGISTRY_IMAGE
+      --build-arg DOWNLOADER_IMAGE=oscript-downloader
+      --build-arg DOWNLOADER_TAG=latest
       --pull -t $CONTAINER_TEST_IMAGE -f ws/Dockerfile .
     - docker push $CONTAINER_TEST_IMAGE
   rules:
     - if: '$INSTALLER_TYPE == "ws"'
     - if: '$BUILD_ALL == "true"'
 
-build:downloader:
-  stage: build edt
-  variables:
-    CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/oscript-downloader:latest
-  script:
-    - docker build
-      --build-arg DOCKER_USERNAME=library
-      --build-arg ONEC_USERNAME=$ONEC_USERNAME
-      --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
-      --build-arg BASE_IMAGE=ubuntu
-      --build-arg BASE_TAG=20.04
-      --build-arg ONESCRIPT_PACKAGES="yard"
-      --pull -t $CONTAINER_TEST_IMAGE -f oscript/Dockerfile .
-    - docker push $CONTAINER_TEST_IMAGE
-  rules:
-    - if: '$INSTALLER_TYPE == "edt"'
-    - if: '$BUILD_ALL == "true"'
-
 build:edt:
   stage: build edt
   variables:
     CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE/edt:$ONEC_VERSION
-  needs:
-    - build:downloader
   script:
     - docker build
-      --build-arg DOCKER_USERNAME=$DOCKER_USERNAME
+      --build-arg DOCKER_USERNAME=$CI_REGISTRY_IMAGE
       --build-arg ONEC_USERNAME=$ONEC_USERNAME
       --build-arg ONEC_PASSWORD=$ONEC_PASSWORD
       --build-arg BASE_IMAGE=azul/zulu-openjdk
       --build-arg BASE_TAG=17
       --build-arg EDT_VERSION=$EDT_VERSION
-      --build-arg DOWNLOADER_REGISTRY_URL=$DOCKER_USERNAME
+      --build-arg DOWNLOADER_REGISTRY_URL=$CI_REGISTRY_IMAGE
       --build-arg DOWNLOADER_IMAGE=oscript-downloader
       --build-arg DOWNLOADER_TAG=latest
       --pull -t $CONTAINER_TEST_IMAGE -f edt/Dockerfile .

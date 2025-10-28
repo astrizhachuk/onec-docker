@@ -1,57 +1,80 @@
-FROM alpine:latest as downloader
+# Используем базовый образ для скачивания
+ARG DOWNLOADER_REGISTRY_URL
+ARG DOWNLOADER_IMAGE
+ARG DOWNLOADER_TAG
+FROM ${DOWNLOADER_REGISTRY_URL}/${DOWNLOADER_IMAGE}:${DOWNLOADER_TAG} AS downloader
 
+# Копирование скрипта скачивания и локальных дистрибутивов
+COPY ./scripts/download_yard.sh /download.sh
+COPY ./distr /distr
+RUN chmod +x /download.sh
+
+# Скачивание дистрибутива 1С с использованием вынесенного скрипта
 ARG ONEC_USERNAME
 ARG ONEC_PASSWORD
 ARG ONEC_VERSION
-ENV installer_type=server
-
-ENV downloads=downloads/platform83/${ONEC_VERSION}
-
-COPY ./scripts/download_og.sh /download_og.sh
 
 WORKDIR /tmp
 
-COPY ./distr ./${downloads}
-RUN rm ./${downloads}/.gitkeep \
-  && rm -rf ${downloads}/thin.client*.tar.gz \
-  && rm -rf ${downloads}/client*.tar.gz \
-  && rm -rf ${downloads}/1c_edt*.tar.gz \
-  && if [ -z "$(ls -A ${downloads})" ]; then \
-  apk --no-cache add bash curl grep tar \
-  && chmod +x /download_og.sh \
-  && sync; /download_og.sh; \
-  fi \
-  && rm -rf ${downloads}/*thin*.tar.gz \
-  && ls ${downloads} \
-  && for file in ${downloads}/*.tar.gz; do tar -xzf "$file"; done \
-  && rm -rf ${downloads}/*.*
+# Установка необходимых пакетов и генерация локали
+RUN apt-get update \
+  && apt-get install -y \
+          locales \
+          p7zip-rar \
+          p7zip-full \
+  && rm -rf /var/lib/apt/lists/* \
+  && locale-gen ru_RU.UTF-8 \
+  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
 
-FROM debian:bullseye-slim as base
+# Установка переменных окружения для корректной работы локали
+ENV LANG ru_RU.UTF-8
+ENV LANGUAGE ru_RU:ru
+ENV LC_ALL ru_RU.UTF-8
 
+RUN /download.sh "$ONEC_USERNAME" "$ONEC_PASSWORD" "$ONEC_VERSION" "server"
+
+FROM ubuntu:20.04 AS base
+
+# Копируем скрипты и файлы установки
 ARG ONEC_VERSION
-ENV installer_type=server
 ARG gosu_ver=1.11
 ARG nls_enabled=false
 ENV nls=$nls_enabled
+ENV distrPath=/tmp/downloads/Platform83/${ONEC_VERSION}
+ENV installer_type=server
 
-COPY ./scripts/install.sh /install.sh
-COPY --from=downloader /tmp/*.* /tmp/
+# Установка зависимостей и настройка локали
+RUN apt-get update \
+&& apt-get install -yq \
+      procps \
+      tzdata \
+      debconf-utils \
+      curl \
+      fontconfig \
+      unixodbc \
+      ttf-mscorefonts-installer \
+      libgsf-1-114 \
+      keyboard-configuration \
+&& dpkg-reconfigure -f noninteractive tzdata \
+&& dpkg-reconfigure -f noninteractive keyboard-configuration \
+&& apt-get install -yq geoclue-2.0 gstreamer1.0-plugins-bad \
+&& export LANG=ru_RU.UTF-8
 
-WORKDIR /tmp
-
-SHELL ["/bin/bash", "-c"]
+COPY ./scripts/install_new.sh /install.sh
+COPY --from=downloader /tmp/ /tmp/
+WORKDIR ${distrPath}
 RUN ls . \
   && chmod +x /install.sh \
   && sync; /install.sh
 
-# create symlink to current 1c:enterprise directory
+# Создание символической ссылки на текущую директорию 1C
 COPY ./scripts/create-symlink-to-current-1cv8.sh /create-symlink-to-current-1cv8.sh
 RUN chmod +x /create-symlink-to-current-1cv8.sh \
   && /create-symlink-to-current-1cv8.sh \
   && rm /create-symlink-to-current-1cv8.sh
 
+# Установка gosu
 ADD https://github.com/tianon/gosu/releases/download/$gosu_ver/gosu-amd64 /bin/gosu
-
 RUN chmod +x /bin/gosu
 
 FROM debian:bullseye-slim
