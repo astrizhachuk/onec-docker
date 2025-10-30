@@ -105,12 +105,9 @@ CMD ["/opt/1cv8/current/1cv8"]
 
 FROM client AS client-vnc
 
+LABEL maintainer="Alexander Strizhachuk <a.strizhachuk@yandex.ru>"
+
 USER root
-
-# ARG ONEC_UID="1001"
-# ARG ONEC_GID="1001"
-
-COPY --from=base /opt /opt
 
 RUN set -xe \
   && echo "deb http://http.debian.net/debian/ bookworm-backports main" > /etc/apt/sources.list.d/backports.list \
@@ -119,39 +116,27 @@ RUN set -xe \
   && apt-get update \
   && echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    dbus-x11 \
-    psmisc \
-    xdg-utils \
-    x11-xserver-utils \
-    x11-utils \
-    xvfb \
-    xfce4 \
-    xfce4-goodies \
-    dirmngr \
-    gnupg \
-    ca-certificates \
-    git \
-    locales \
-    ttf-mscorefonts-installer \
-    libfontconfig1 \
-    libgsf-1-114 \
-    libglib2.0-0 \
-    libgtk2.0-0 \
-    libodbc1 \
-    libtcmalloc-minimal4 \
-    libmagickwand-6.q16-6 \
-    libwebkit2gtk-4.0-37 \
-    at-spi2-core \
-    procps \
-    x11vnc \
-    iproute2 \
-    xz-utils \
-    libglu1-mesa \
+      dbus-x11 \
+      psmisc \
+      xdg-utils \
+      x11-xserver-utils \
+      x11-utils \
+      xvfb \
+      xfce4 \
+      xfce4-goodies \
+      dirmngr \
+      gnupg \
+      git \
+      libtcmalloc-minimal4 \
+      procps \
+      x11vnc \
+      iproute2 \
+      xz-utils \
   && sed -i 's%<property name="ThemeName" type="string" value="Xfce"/>%<property name="ThemeName" type="string" value="Raleigh"/>%' /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml \
   && rm -rf \
     /var/lib/apt/lists/* \
-    /var/cache/debconf \
-  && localedef -i ru_RU -c -f UTF-8 -A /usr/share/locale/locale.alias ru_RU.UTF-8
+    /var/cache/debconf
+
 ENV LANG=ru_RU.UTF-8
 
 # remove DST Root CA X3 cert if it exists
@@ -159,10 +144,6 @@ COPY ./scripts/remove-dst-root-ca-x3.sh /remove-dst-root-ca-x3.sh
 RUN chmod +x /remove-dst-root-ca-x3.sh \
   && /remove-dst-root-ca-x3.sh \
   && rm /remove-dst-root-ca-x3.sh
-
-# RUN mkdir -p /home/usr1cv8/.1cv8 \
-#   && mkdir -p /home/usr1cv8/.1C/1cestart \
-#   && chown -R usr1cv8:grp1cv8 /home/usr1cv8
 
 ENV DISPLAY=:0
 ENV DISPLAY_WIDTH=1440

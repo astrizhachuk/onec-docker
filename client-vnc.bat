@@ -8,7 +8,6 @@ docker build ^
     -f oscript/Dockerfile .
 
 docker build ^
-  --no-cache ^
   --build-arg ONEC_USERNAME=%ONEC_USERNAME% ^
   --build-arg ONEC_PASSWORD=%ONEC_PASSWORD% ^
   --build-arg ONEC_VERSION=%ONEC_VERSION% ^
