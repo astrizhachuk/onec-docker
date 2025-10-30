@@ -26,16 +26,21 @@
 
 ### Примеры запуска
 
-* [Сервер](#сервер)
-* [Сервер с дополнительными языками](#сервер-с-дополнительными-языками)
-* [Клиент](#клиент)
-* [Клиент с дополнительными языками](#клиент-с-дополнительными-языками)
-* [Клиент с поддержкой VNC](#клиент-с-поддержкой-vnc)
-* [Клиент с дополнительными языками и поддержкой VNC](#клиент-с-дополнительными-языками-и-поддержкой-vnc)
-* [Хранилище конфигурации](#хранилище-конфигурации)
-* [Хранилище конфигурации с сервером apache](#хранилище-конфигурации-с-сервером-apache)
-* [OneScript](#onescript)
-* [Vanessa-Automation](#vanessa-automation)
+- [Сборка образов для 1С:Платформа](#сборка-образов-для-1сплатформа)
+  - [Процесс сборки образов](#процесс-сборки-образов)
+    - [Примеры запуска](#примеры-запуска)
+    - [Сервер](#сервер)
+    - [Сервер с дополнительными языками](#сервер-с-дополнительными-языками)
+    - [Клиент](#клиент)
+    - [Клиент с дополнительными языками](#клиент-с-дополнительными-языками)
+    - [Клиент с поддержкой VNC](#клиент-с-поддержкой-vnc)
+    - [Клиент с дополнительными языками и поддержкой VNC](#клиент-с-дополнительными-языками-и-поддержкой-vnc)
+    - [Хранилище конфигурации](#хранилище-конфигурации)
+    - [Хранилище конфигурации с сервером apache](#хранилище-конфигурации-с-сервером-apache)
+    - [OneScript](#onescript)
+  - [Как запустить в docker-compose](#как-запустить-в-docker-compose)
+  - [Как запустить тестирование VA](#как-запустить-тестирование-va)
+  - [Как работать с удаленных хранилищем](#как-работать-с-удаленных-хранилищем)
 
 
 - [rac-gui]
@@ -256,30 +261,6 @@ docker build \
   --build-arg ONESCRIPT_VERSION=1.6.0 \
   -t ${DOCKER_USERNAME}/oscript-1.6.0:${ONEC_VERSION} \
   -f oscript/Dockerfile .
-```
-
-### Vanessa-Automation
-
-```bash
-# windows
-docker build ^
-  --build-arg ONEC_USERNAME=%ONEC_USERNAME% ^
-  --build-arg ONEC_PASSWORD=%ONEC_PASSWORD% ^
-  --build-arg ONEC_VERSION=%ONEC_VERSION% ^
-  --build-arg VA_VERSION=1.2.036 ^
-  --target client-vnc-va ^
-  -t %DOCKER_USERNAME%/va:%ONEC_VERSION% ^
-  -f client/Dockerfile .
-
-# linux
-docker build \
-  --build-arg ONEC_USERNAME=${ONEC_USERNAME} \
-  --build-arg ONEC_PASSWORD=${ONEC_PASSWORD} \
-  --build-arg ONEC_VERSION=${ONEC_VERSION} \
-  --build-arg VA_VERSION=1.2.036 \
-  --target client-vnc-va \
-  -t %DOCKER_USERNAME%/va:${ONEC_VERSION} \
-  -f client/Dockerfile .
 ```
 
 ## Как запустить в docker-compose
