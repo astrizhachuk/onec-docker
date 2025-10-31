@@ -163,3 +163,30 @@ RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
 COPY ./configs/client-vnc/rootfs-v3/ /
 
 ENTRYPOINT ["/init"]
+
+FROM client-vnc as client-vnc-va
+
+ARG VA_VERSION
+ARG INIT_DB_VERSION="2.0.0"
+
+RUN set -xe \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        curl \
+        unzip \ 
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /var/cache/debconf \
+    && curl -Ls -o /tmp/va.zip https://github.com/Pr-Mex/vanessa-automation/releases/download/${VA_VERSION}/vanessa-automation-single.${VA_VERSION}.zip \
+    && curl -Ls -o /usr/lib/InitDB.epf https://github.com/astrizhachuk/Init-db-1c/releases/download/${INIT_DB_VERSION}/InitDB.epf \
+    && unzip /tmp/va.zip -d /tmp \
+    && mv /tmp/vanessa-automation-single.epf /usr/lib/vanessa-automation-single.epf \
+    && ln -s /usr/lib/vanessa-automation-single.epf /va.epf \
+    && ln -s /usr/lib/InitDB.epf /init.epf \
+    && rm -rf /tmp/* \
+    && chown -R usr1cv8:grp1cv8 /usr/lib/vanessa-automation-single.epf /va.epf /usr/lib/InitDB.epf /init.epf
+
+ENV VA=/usr/lib/vanessa-automation-single.epf
+ENV INIT_DB=/usr/lib/InitDB.epf
+
+ENTRYPOINT ["/init"]

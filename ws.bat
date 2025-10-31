@@ -15,5 +15,5 @@ docker build ^
   --build-arg DOWNLOADER_REGISTRY_URL=%DOCKER_USERNAME% ^
   --build-arg DOWNLOADER_IMAGE=oscript-downloader ^
   --build-arg DOWNLOADER_TAG=latest ^
-  -t %DOCKER_USERNAME%/server:%ONEC_VERSION% ^
+  -t %DOCKER_USERNAME%/ws:%ONEC_VERSION% ^
   -f ws/Dockerfile .

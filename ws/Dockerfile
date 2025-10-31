@@ -113,7 +113,7 @@ COPY ./configs/server/conf/logcfg.xml /opt/1cv8/current/conf
 
 STOPSIGNAL SIGWINCH
 
-COPY ./ws/apache2-foreground /usr/local/bin/
+COPY ./ws/apache2-foreground.sh /usr/local/bin/apache2-foreground
 
 RUN chmod 755 /usr/local/bin/apache2-foreground \
   && chmod +x /usr/local/bin/apache2-foreground
@@ -122,4 +122,4 @@ WORKDIR /var/www
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/apache2-foreground"]
